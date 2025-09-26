@@ -1,0 +1,41 @@
+name: .NET CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout code
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # Step 2: Setup .NET
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+
+    # Step 3: Restore dependencies
+    - name: Restore dependencies
+      run: dotnet restore
+
+    # Step 4: Build project
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+
+    # Step 5: Run unit tests
+    - name: Run tests
+      run: dotnet test --no-build --configuration Release --verbosity normal
+
+    # Step 6: Inject secrets as environment variables (available to tests if needed)
+    - name: Set environment variables
+      run: |
+        echo "TWILIO__ACCOUNTSID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> $GITHUB_ENV
+        echo "TWILIO__AUTHTOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> $GITHUB_ENV
+        echo "TWILIO__FROMNUMBER=${{ secrets.TWILIO_FROM_NUMBER }}" >> $GITHUB_ENV
